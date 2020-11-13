@@ -1,0 +1,15 @@
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+canvas {
+  opacity: 0;
+  transition: opacity 4.528s;
+}
+
+canvas.fade-in {
+  opacity: 1;
+}
