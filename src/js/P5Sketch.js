@@ -1,25 +1,26 @@
 import React, { useEffect } from "react";
-import './globals';
+import "./globals";
 import "p5/lib/addons/p5.sound";
 import * as p5 from "p5";
 import audio from '../audio/donuts-no-1.mp3'
+import cueSet1 from "./cueSet1.js";
 
 
 const P5Sketch = () => {
 
-    const Sketch = p5 => {
+    const Sketch = p => {
 
-        p5.canvasWidth = window.innerWidth;
+        p.canvasWidth = window.innerWidth;
 
-        p5.canvasHeight = window.innerHeight;
+        p.canvasHeight = window.innerHeight;
 
-        p5.canvas = null;
+        p.canvas = null;
         
-        p5.song = null;
+        p.song = null;
 
-        p5.tempo = 106;
+        p.tempo = 106;
 
-        p5.hueRanges = {
+        p.hueRanges = {
             1: [-30, 30, 0],
             2: [31, 90, 60],
             3: [91, 150, 120],
@@ -28,41 +29,58 @@ const P5Sketch = () => {
             6: [271, 330, 300]
         }
 
-        p5.rotationOptions = [3, 4, 6, 8, 12];
+        p.rotationOptions = [3, 4, 6, 8, 12];
 
-        p5.iterationOptions = [8, 16, 32, 64];
+        p.iterationOptions = [8, 16, 32, 64];
 
-        p5.donutsArray = [];
+        p.donutsArray = [];
 
-        p5.setup = () => {
-            p5.song = p5.loadSound(audio);
-            p5.colorMode(p5.HSB);
-            p5.loadDountsArray();
-            p5.canvas = p5.createCanvas(p5.canvasWidth, p5.canvasHeight);
-            p5.noFill();
-            p5.strokeWeight(0.5);
-            p5.frameRate(5);
+        p.cueSet1Completed = [];
+
+        p.setup = () => {
+            p.song = p.loadSound(audio);
+            p.colorMode(p.HSB);
+            p.loadDountsArray();
+            p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
+            p.noFill();
+            p.strokeWeight(0.5);
+            p.frameRate(5);
+
+            for (let i = 0; i < cueSet1.length; i++) {
+              let vars = {
+                currentCue: i + 1,
+                time: cueSet1[i].time,
+                midi: cueSet1[i].midi,
+              };
+              p.song.addCue(cueSet1[i].time, p.executeCueSet1, vars);
+            }
         };
 
-        p5.loadDountsArray = () => {
-            let i = 0, translateX = p5.canvasWidth / 2, translateY = p5.canvasHeight / 2;
+        p.executeCueSet1 = (currentCue) => {
+           if (!p.cueSet1Completed.includes(currentCue)) {
+             p.cueSet1Completed.push(currentCue);
+           }
+        };
+
+        p.loadDountsArray = () => {
+            let i = 0, translateX = p.canvasWidth / 2, translateY = p.canvasHeight / 2;
             while (i < 24) {
-                let randomPointer1 = p5.floor(p5.random(1, 7));
+                let randomPointer1 = p.floor(p.random(1, 7));
                 let randomPointer2 = randomPointer1 + 3;
                 if (randomPointer2 > 6) {
                     randomPointer2 = randomPointer2 - 6;
                 }
-                let fromColour = p5.color(p5.random(p5.hueRanges[randomPointer1][0], p5.hueRanges[randomPointer1][1]), 100, 100);
-                let toColour = p5.color(p5.random(p5.hueRanges[randomPointer2][0], p5.hueRanges[randomPointer2][1]), 100, 100);
+                let fromColour = p.color(p.random(p.hueRanges[randomPointer1][0], p.hueRanges[randomPointer1][1]), 100, 100);
+                let toColour = p.color(p.random(p.hueRanges[randomPointer2][0], p.hueRanges[randomPointer2][1]), 100, 100);
                 
                 let frames = [];
                 let x = 0;
-                let width = p5.canvasWidth;
+                let width = p.canvasWidth;
                 let lerpAmount = 0;
-                let colour = p5.lerpColor(fromColour, toColour, lerpAmount);
-                let numOfRotations =  p5.random(p5.rotationOptions);
-                let numOfIterations = p5.random(p5.iterationOptions);
-                let shapeSize = p5.random(10, 80);
+                let colour = p.lerpColor(fromColour, toColour, lerpAmount);
+                let numOfRotations =  p.random(p.rotationOptions);
+                let numOfIterations = p.random(p.iterationOptions);
+                let shapeSize = p.random(10, 80);
                 
                 while (x < width) {
                     for (var j = 0; j < (numOfRotations * 2); j++) {
@@ -89,17 +107,17 @@ const P5Sketch = () => {
                         frames.push(
                             {
                                 'rotate': {
-                                    'angle': (p5.PI / numOfRotations)
+                                    'angle': (p.PI / numOfRotations)
                                 }
                             }
                         );
                     }
                     x = x + width / numOfIterations;
                     lerpAmount = lerpAmount + (1 / numOfIterations / 2);
-                    colour = p5.lerpColor(fromColour, toColour, lerpAmount);
+                    colour = p.lerpColor(fromColour, toColour, lerpAmount);
                 }
 
-                p5.donutsArray.push(
+                p.donutsArray.push(
                     {
                         'x': translateX, 
                         'y': translateY,
@@ -108,28 +126,30 @@ const P5Sketch = () => {
                             'y': translateY
                          },
                         'frames': frames,
-                        'numOfRotations': p5.random(p5.rotationOptions),
-                        'numOfIterations': p5.random(p5.iterationOptions),
-                        'shapeSize': p5.random(10, 80),
+                        'numOfRotations': p.random(p.rotationOptions),
+                        'numOfIterations': p.random(p.iterationOptions),
+                        'shapeSize': p.random(10, 80),
                         'fromColour': fromColour,
                         'toColour': toColour
                     }
                 ); 
                 i++;
-                translateX = p5.random(0, p5.canvasWidth);
-                translateY = p5.random(0, p5.canvasHeight);
+                translateX = p.random(0, p.canvasWidth);
+                translateY = p.random(0, p.canvasHeight);
             }
+
+            console.log(p.donutsArray);
         }
 
-        p5.draw = () => {
-            p5.background(0);
-            let currentDonutIndex = p5.getSongBar();
-            if (p5.song._lastPos > 0 && currentDonutIndex >= 0){
+        p.draw = () => {
+            p.background(0);
+            let currentDonutIndex = p.getSongBar();
+            if (p.song._lastPos > 0 && currentDonutIndex >= 0){
                 if (currentDonutIndex > 23){
                     currentDonutIndex = 23;
-                    p5.canvas.removeClass('fade-in');
+                    p.canvas.removeClass('fade-in');
                 }
-                p5.drawDonuts(currentDonutIndex);
+                p.drawDonuts(currentDonutIndex);
                 let i = 0;
                 while (i <= currentDonutIndex) {
                     i++;
@@ -137,39 +157,39 @@ const P5Sketch = () => {
             }
         };
 
-        p5.drawDonuts = (currentDonutIndex) => {
-            const currentDonut = p5.donutsArray[currentDonutIndex];
+        p.drawDonuts = (currentDonutIndex) => {
+            const currentDonut = p.donutsArray[currentDonutIndex];
             
             if (Object.keys(currentDonut.translate).length){
-                p5['translate'](currentDonut.translate.x, currentDonut.translate.y);    
+                p['translate'](currentDonut.translate.x, currentDonut.translate.y);    
             }
             for (var i = 0; i < currentDonut.frames.length; i++) {
                 let p5Action = currentDonut.frames[i];
                 if (p5Action.hasOwnProperty('stroke')) {
-                    p5['stroke'](p5Action.stroke.colour, p5Action.stroke.alpha);
+                    p['stroke'](p5Action.stroke.colour, p5Action.stroke.alpha);
                 }
 
                 if (currentDonut.frames[i].hasOwnProperty('ellipse')) {
-                    p5['ellipse'](p5Action.ellipse.x, p5Action.ellipse.y, p5Action.ellipse.width, p5Action.ellipse.hegith);
+                    p['ellipse'](p5Action.ellipse.x, p5Action.ellipse.y, p5Action.ellipse.width, p5Action.ellipse.hegith);
                 }
 
                 if (currentDonut.frames[i].hasOwnProperty('rotate')) {
-                    p5['rotate'](p5Action.rotate.angle);
+                    p['rotate'](p5Action.rotate.angle);
                 }
 
             }
         }
 
-        p5.getSongBar = () => {
-            if (p5.song.buffer){
+        p.getSongBar = () => {
+            if (p.song.buffer){
                 const beatsPerBar = 4
-                const barAsBufferLength = (p5.song.buffer.sampleRate * 60 / p5.tempo) * beatsPerBar;
-                return Math.floor(p5.song._lastPos / barAsBufferLength);
+                const barAsBufferLength = (p.song.buffer.sampleRate * 60 / p.tempo) * beatsPerBar;
+                return Math.floor(p.song._lastPos / barAsBufferLength);
             }
             return -1;
         }
 
-        p5.donutDelay = (index, x) => {
+        p.donutDelay = (index, x) => {
             setTimeout(
                 function () {
                     
@@ -178,28 +198,28 @@ const P5Sketch = () => {
             ); 
         }
 
-        p5.mousePressed = () => {
-            if (p5.song.isPlaying()) {
-                p5.song.pause();
-                console.log(p5.donutsArray[0]);
+        p.mousePressed = () => {
+            if (p.song.isPlaying()) {
+                p.song.pause();
+                console.log(p.donutsArray[0]);
             } else {
-                p5.canvas.addClass('fade-in');
-                p5.song.play();
+                p.canvas.addClass('fade-in');
+                p.song.play();
             }
         };
 
-        p5.updateCanvasDimensions = () => {
-            p5.canvasWidth = window.innerWidth;
-            p5.canvasHeight = window.innerHeight;
-            p5.createCanvas(p5.canvasWidth, p5.canvasHeight);
-            p5.redraw();
+        p.updateCanvasDimensions = () => {
+            p.canvasWidth = window.innerWidth;
+            p.canvasHeight = window.innerHeight;
+            p.createCanvas(p.canvasWidth, p.canvasHeight);
+            p.redraw();
         }
 
         if (window.attachEvent) {
             window.attachEvent(
                 'onresize',
                 function () {
-                    p5.updateCanvasDimensions();
+                    p.updateCanvasDimensions();
                 }
             );
         }
@@ -207,7 +227,7 @@ const P5Sketch = () => {
             window.addEventListener(
                 'resize',
                 function () {
-                    p5.updateCanvasDimensions();
+                    p.updateCanvasDimensions();
                 },
                 true
             );
