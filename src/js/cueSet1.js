@@ -214,7 +214,16 @@ const cueSet1 = [
           "ticks": 1413120,
           "time": 52.075404,
           "velocity": 0.7874015748031497
-        }
+        },
+        {
+          "duration": 2.2641479999999987,
+          "durationTicks": 61440,
+          "midi": 52,
+          "name": "E3",
+          "ticks": 983040,
+          "time": 54.3450,
+          "velocity": 0.7874015748031497
+        },
 ];
 
 export default cueSet1;

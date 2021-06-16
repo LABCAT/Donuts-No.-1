@@ -1,13 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import "./globals";
 import "p5/lib/addons/p5.sound";
 import * as p5 from "p5";
-import audio from '../audio/donuts-no-1.mp3'
+import audio from '../audio/donuts-no-2.ogg'
 import cueSet1 from "./cueSet1.js";
-import cueSet2 from "./cueSet2.js";
 
 
 const P5Sketch = () => {
+    const sketchRef = useRef();
 
     const Sketch = p => {
 
@@ -32,20 +32,23 @@ const P5Sketch = () => {
 
         p.rotationOptions = [3, 4, 6, 8, 12];
 
-        p.iterationOptions = [16, 32, 64, 128];
+        p.iterationOptions = [16, 32, 48, 64];
 
         p.cueSet1Completed = [];
 
         p.cueSet2Completed = [];
 
-        p.setup = () => {
+        p.preload = () => {
             p.song = p.loadSound(audio);
+        }
+
+        p.setup = () => {
             p.colorMode(p.HSB);
             p.loadDonutGroupsArray();
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
             p.noFill();
             p.strokeWeight(0.5);
-            p.frameRate(5);
+            p.frameRate(30);
 
             for (let i = 0; i < cueSet1.length; i++) {
               let vars = {
@@ -55,15 +58,6 @@ const P5Sketch = () => {
                 midi: cueSet1[i].midi,
               };
               p.song.addCue(cueSet1[i].time, p.executeCueSet1, vars);
-            }
-
-            for (let i = 0; i < cueSet2.length; i++) {
-              let vars = {
-                currentCue: i + 1,
-                time: cueSet2[i].time,
-                midi: cueSet2[i].midi,
-              };
-              p.song.addCue(cueSet2[i].time, p.executeCueSet2, vars);
             }
         };
 
@@ -75,53 +69,33 @@ const P5Sketch = () => {
             const currentCue = vars.currentCue;
             if (!p.cueSet1Completed.includes(currentCue)) {
                 p.cueSet1Completed.push(currentCue);
-                //const currentDonutGroup = p.donutGroupsArray[p.currentDonutGroupIndex];
-                //const framesToAdd = currentDonutGroup.frames.length / 8;
-                //p.donutsArray = p.donutsArray.concat(currentDonutGroup.frames.slice(modulo * framesToAdd, (modulo * framesToAdd) + framesToAdd ));
-                console.log(vars);
-                // for (let i = 0; i < triangles.length; i++) {
-                //     setTimeout(
-                //         function () {
-                //             p.drawTriangleGroup(triangles[i])
-                //         },
-                //         (delayAmount * i)
-                //     );
-                // }
-            }
-        };
-
-        p.executeCueSet2 = (vars) => {
-            const currentCue = vars.currentCue;
-            if (!p.cueSet2Completed.includes(currentCue)) {
-                p.cueSet2Completed.push(currentCue);
-                const modulo = (currentCue - 1) % 8;
-                if(modulo === 0 && currentCue > 1){
-                    p.currentDonutGroupIndex++;
-                    p.donutsArray = [];
-                }
                 const currentDonutGroup = p.donutGroupsArray[p.currentDonutGroupIndex];
-                const framesToAdd = currentDonutGroup.frames.length / 8;
-                p.donutsArray = p.donutsArray.concat(currentDonutGroup.frames.slice(modulo * framesToAdd, (modulo * framesToAdd) + framesToAdd ));
-                console.log();
-                // for (let i = 0; i < triangles.length; i++) {
-                //     setTimeout(
-                //         function () {
-                //             p.drawTriangleGroup(triangles[i])
-                //         },
-                //         (delayAmount * i)
-                //     );
-                // }
+                //const iterations = currentDonutGroup.numOfIterations;
+                const iterations = 16;
+                const framesToAdd = currentDonutGroup.frames.length / iterations;
+                const delayAmount = parseInt(vars.duration * 1000) / iterations;
+                for (let i = 0; i < iterations; i++) {
+                    setTimeout(
+                        function () {
+                            p.donutsArray = p.donutsArray.concat(currentDonutGroup.frames.slice(i * framesToAdd, (i * framesToAdd) + framesToAdd ));
+                        },
+                        (delayAmount * i)
+                    );
+                }
+                p.currentDonutGroupIndex++;
+                p.donutsArray = [];
+                if(currentCue > 24){
+                    p.currentDonutGroupIndex = 24;
+                    p.canvas.removeClass('fade-in');
+                }
             }
         };
 
         p.draw = () => {
-            p.background(0);
+            p.background(0, 0, 0, 0.9);
             if (p.song._lastPos > 0 && p.currentDonutGroupIndex >= 0){
-                if (p.currentDonutGroupIndex > 23){
-                    p.currentDonutGroupIndex = 23;
-                    p.canvas.removeClass('fade-in');
-                }
                 const currentDonutGroup = p.donutGroupsArray[p.currentDonutGroupIndex];
+                
                 if (Object.keys(currentDonutGroup.translate).length){
                     p.translate(currentDonutGroup.translate.x, currentDonutGroup.translate.y);    
                 }
@@ -151,7 +125,7 @@ const P5Sketch = () => {
 
         p.loadDonutGroupsArray = () => {
             let i = 0, translateX = p.canvasWidth / 2, translateY = p.canvasHeight / 2;
-            while (i < 24) {
+            while (i < 25) {
                 let randomPointer1 = p.floor(p.random(1, 7));
                 let randomPointer2 = randomPointer1 + 3;
                 if (randomPointer2 > 6) {
@@ -167,7 +141,7 @@ const P5Sketch = () => {
                 let colour = p.lerpColor(fromColour, toColour, lerpAmount);
                 let numOfRotations =  p.random(p.rotationOptions);
                 let numOfIterations = p.random(p.iterationOptions);
-                let shapeSize = p.random(10, 80);
+                let shapeSize = p.random(30, 80);
                 
                 while (x < width) {
                     for (var j = 0; j < (numOfRotations * 2); j++) {
@@ -229,11 +203,35 @@ const P5Sketch = () => {
         p.mousePressed = () => {
             if (p.song.isPlaying()) {
                 p.song.pause();
-                console.log(p.donutGroupsArray[0]);
             } else {
+                if (parseInt(p.song.currentTime()) >= parseInt(p.song.buffer.duration)) {
+                    p.reset();
+                }
                 p.canvas.addClass('fade-in');
                 p.song.play();
             }
+        };
+
+        p.creditsLogged = false;
+
+        p.logCredits = () => {
+            if (!p.creditsLogged && parseInt(p.song.currentTime()) >= parseInt(p.song.buffer.duration)) {
+                p.creditsLogged = true;
+                console.log(
+                    'Music By: http://labcat.nz/',
+                    '\n',
+                    'Animation By: https://github.com/LABCAT/donuts-no-2',
+                );
+                p.song.stop();
+            }
+        }
+
+        p.reset = () => {
+            p.clear();
+            p.cueSet1Completed = [];
+            p.donutGroupsArray = [];
+            p.currentDonutGroupIndex = 0
+            p.loadDonutGroupsArray();
         };
 
         p.updateCanvasDimensions = () => {
