@@ -86,7 +86,7 @@ const P5Sketch = () => {
                 p.donutsArray = [];
                 if(currentCue > 24){
                     p.currentDonutGroupIndex = 24;
-                    p.canvas.removeClass('fade-in');
+                    p.canvas.addClass('fade-out');
                 }
             }
         };
@@ -207,7 +207,7 @@ const P5Sketch = () => {
                 if (parseInt(p.song.currentTime()) >= parseInt(p.song.buffer.duration)) {
                     p.reset();
                 }
-                p.canvas.addClass('fade-in');
+                p.canvas.removeClass('fade-out');
                 p.song.play();
             }
         };

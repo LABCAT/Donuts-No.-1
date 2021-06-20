@@ -6,10 +6,10 @@ body {
 }
 
 canvas {
-  opacity: 0;
+  opacity: 1;
   transition: opacity 4.528s;
 }
 
-canvas.fade-in {
-  opacity: 1;
+canvas.fade-out {
+  opacity: 0;
 }
